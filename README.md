@@ -21,3 +21,20 @@ Jupyter Notebook
 Windows OS,
 4GB RAM,
 64 bits processor
+
+# Image Steganography Project Report
+
+## Submitted by
+Pradeep Kumar Chaudhary
+
+## Department
+Computer Science and Engineering
+
+## Date
+AUGUST 2022
+
+## Project Report
+You can access the full project report in PDF format [here](https://drive.google.com/file/d/13hkwQ2ZjNKCnIOAQh9A4A8ljoE7uZ8PH/view?usp=sharing).
+
+
+
