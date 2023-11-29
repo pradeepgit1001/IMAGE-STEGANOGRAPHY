@@ -13,11 +13,11 @@ algorithms. The mean square is the matric considered to measure the error
 between the cover(original) image and the stego image(image with message bit).
 
 #IMPLEMENTATION
-1. Tools used
-Visual Studio Code
-Python 3
+1. Tools used:
+Visual Studio Code,
+Python 3,
 Jupyter Notebook
-2. Platform
-Windows OS
-4GB RAM
+2. Platform:
+Windows OS,
+4GB RAM,
 64 bits processor
