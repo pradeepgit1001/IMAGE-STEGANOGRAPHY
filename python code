@@ -6,7 +6,6 @@ from skimage import metrics
 
 #it convert data in binary formate
 
-
 def data2binary(data):
     if type(data) == str:
         p = ''.join([format(ord(i), '08b')for i in data])
@@ -15,79 +14,131 @@ def data2binary(data):
     return p
 
 
+#selecting the filtering component out of r,g,b
+
+def filter_comp(img): 
+    r_count=0
+    g_count=0
+    b_count=0
+    for value in img:
+        for pix in value:
+            r, g, b = data2binary(pix)
+#                print(r+":"+r[0],g+":"+g[0],b+":"+b[0])
+            if(r[0]=='1'):
+                 r_count+=1
+            if(g[0]=='1'):
+                g_count+=1
+            if(b[0]=='1'):
+                b_count+=1
+                
+#     print(r_count, g_count,b_count)
+    if((r_count>g_count) and (r_count>b_count)):
+        return (0,'r')
+    if((g_count>r_count) and (g_count>b_count)):
+        return (1,'g')
+    if((b_count>r_count) and (b_count>g_count)):
+        return (2,'b')
+    if((b_count==g_count) and (b_count>r_count)):
+        return (2,'b')
+    if((b_count==r_count) and (b_count>g_count)):
+        return (2,'b')
+    if((g_count==r_count) and (g_count>b_count)):
+        return (1,'g')
+    
+                
+
 # hide data in given img
 
 def hidedata(img, data):
     data += "$$"                                   #'$$'--> secrete key
     d_index = 0
     b_data = data2binary(data)
-#     print(b_data)
+#     print("message: ",b_data)
     len_data = len(b_data)
-#     print(len_data)
+#     print("length of the message: ",len_data)
+    
 
+    c_num,c_component=filter_comp(img)
+#     print(c_num,c_component)
+    
+    
  #iterate pixels from image and update pixel values
-    count=0;
     for value in img:
         for pix in value:
             r, g, b = data2binary(pix)
+            
             if d_index < len_data:
-                pix[0] = int(b[:-1] + b_data[d_index])
-                d_index += 1
+                if(c_component=='r'):
+                    pix[c_num] = int(r[:-1] + b_data[d_index])
+                    d_index += 1
+            
             if d_index < len_data:
-                pix[1] = int(g[:-1] + b_data[d_index])
-                d_index += 1
+                if(c_component=='g'):
+                    pix[c_num] = int(g[:-1] + b_data[d_index])
+                    d_index += 1
+                
             if d_index < len_data:
-                pix[2] = int(r[:-1] + b_data[d_index])
-                d_index += 1
-                count+=1
+                if(c_component=='b'):
+                    pix[c_num] = int(b[:-1] + b_data[d_index])
+                    d_index += 1
+            
             if d_index >= len_data:
                 break
+        if d_index >= len_data:
+            break
+                                
     return img
 
 
 def encode():
-    img_name = "mount.png"
+    img_name ="mount.png"
     image = cv2.imread(img_name)
     img = Image.open(img_name, 'r')
     w, h = img.size
-#     print(w,h)
-    data = input("Enter your message: ")
+    data = input("enter the message to encode: ")
     if len(data) == 0:
         raise ValueError("Empty data")
-    enc_img = "stego_mount_traditional.png"
+    enc_img = "stego_mount_novel.png"
     enc_data = hidedata(image, data)
     cv2.imwrite(enc_img, enc_data)
     img1 = Image.open(enc_img, 'r')
     img1 = img1.resize((w, h),Image.Resampling.LANCZOS)
-    w1,h1=img1.size
-#     print(w1,h1)
-    
     #CONVERTING THE IMGAGE FILE TO NUMPY ARRAY
     image_sec= np.array(img1)
-    
-
     # optimize with 65% quality
     if w != h:
         img1.save(enc_img, optimize=True, quality=65)
     else:
         img1.save(enc_img)
-    
-    
-    #FINDING THE MEAN SQUARED ERROR
+
+        #FINDING THE MEAN SQUARED ERROR
     mse_skimg=metrics.mean_squared_error(image,image_sec)
-    print("mse: = ",mse_skimg)
+    print("mse: ",mse_skimg)
     
 # decoding
 
 def find_data(img):
     bin_data = ""
-    for value in img:
-        for pix in value:
-            r, g, b = data2binary(pix)
-            bin_data += r[-1]
-            bin_data += g[-1]
-            bin_data += b[-1]
 
+    c_num,c_component=filter_comp(img)
+#     print(c_num,c_component)
+    
+    for value in img:
+#       print("value: ",value)
+        for pix in value:
+#           print("pix: ",pix)
+            r, g, b = data2binary(pix)
+            if(c_component=='r'):
+                bin_data += r[-1]
+            
+            if(c_component=='g'):
+                bin_data += g[-1]
+            
+            if(c_component=='b'):
+                bin_data += b[-1]
+    
+
+#     print(bin_data)
     all_bytes = [bin_data[i: i + 8] for i in range(0, len(bin_data), 8)]
 
     readable_data = ""
@@ -99,27 +150,29 @@ def find_data(img):
 
 
 def decode():
-    img_name = "stego_mount_traditional.png"
+    img_name = "stego_mount_novel.png"
     image = cv2.imread(img_name)
     img=Image.open(img_name,'r')
     msg = find_data(image)
     return msg
 
 
-def steganography():
+def stegnography():
     x = 1
     while x != 0:
        print('''\nImage stegnography
        1.encode
        2.decode''')
-       u_in = int(input("\n enter your choice:"))
+       u_in = int(input("\nenter your choice: "))
        if u_in == 1:
            encode()
        else:
            ans = decode()
-           print("\n your message:"+ans)
-       x = int(input("\nenter 1 for continue otherwise 0:"))
+           print("\nyour message: "+ans) 
+       x = int(input('''\nEnter: 
+           0. exit 
+           1. continue\n\n'''))
+       
 
 
-steganography()
-
+stegnography()  
